@@ -372,7 +372,6 @@ function renderViewGrid() {
 
   grid.innerHTML = `<div class="bookings-grid">${all.map(({ time, slot, team, color }) => `
     <div class="booking-card" style="background:${color}">
-      <div class="slot-label">Slot ${slot}</div>
       <div class="team">${team}</div>
       <div class="time">🕐 ${time}</div>
       <div class="loc">📍 ${LOCATION}</div>
