@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Critical Friend – Interview Booking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #f5f3ef; color: #1a1a2e; min-height: 100vh; }
+
+    .header { background: #1a1a2e; color: #fff; padding: 0 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+    .header-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .header-title { font-family: 'Fraunces', serif; font-size: 20px; letter-spacing: -0.5px; }
+    .header-sub { font-size: 13px; opacity: 0.5; margin-left: 10px; font-weight: 500; }
+    .header-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 8px; padding: 7px 16px; font-size: 13px; cursor: pointer; font-family: inherit; font-weight: 600; transition: background 0.15s; text-decoration: none; display: inline-block; }
+    .header-btn:hover { background: rgba(255,255,255,0.2); }
+
+    main { max-width: 860px; margin: 0 auto; padding: 32px 16px 80px; }
+    .card { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+
+    label { display: block; font-weight: 600; font-size: 14px; color: #444; margin-bottom: 8px; }
+    input[type="text"] { width: 100%; padding: 12px 14px; border: 1.5px solid #e0ddd8; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; transition: border 0.15s; }
+    input[type="text"]:focus { border-color: #5a67d8; }
+
+    .slot-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+    .slot-section-title { font-family: 'Fraunces', serif; font-size: 18px; }
+    .location-badge { font-size: 12px; color: #888; font-weight: 500; }
+
+    .grid-header { display: grid; grid-template-columns: 130px repeat(4, 1fr); gap: 6px; margin-bottom: 6px; }
+    .grid-header-cell { text-align: center; font-size: 12px; font-weight: 700; color: #999; padding: 4px 0; letter-spacing: 0.5px; text-transform: uppercase; }
+    .grid-row { display: grid; grid-template-columns: 130px repeat(4, 1fr); gap: 6px; margin-bottom: 6px; align-items: center; }
+    .time-label { font-size: 12px; font-weight: 600; color: #666; line-height: 1.3; }
+
+    .slot-btn {
+      padding: 8px 4px; border-radius: 10px; border: 2px solid #dddad4;
+      background: #fafaf8; color: #555; font-size: 11px; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: all 0.12s;
+      text-align: center; line-height: 1.4; min-height: 58px;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 2px; width: 100%;
+    }
+    .slot-btn:hover:not(:disabled) { border-color: #5a67d8; background: #f0f1ff; color: #5a67d8; }
+    .slot-btn.selected { border-color: #5a67d8; background: #eef0ff; color: #5a67d8; }
+    .slot-btn.booked { border-color: #e8e6e0; background: #f0efeb; color: #bbb; cursor: not-allowed; }
+
+    /* Watching state — amber warning */
+    .slot-btn.watching { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+    .slot-btn.watching:hover:not(:disabled) { border-color: #d97706; background: #fef3c7; }
+    .slot-btn.selected.watching { border-color: #5a67d8; background: #eef0ff; color: #5a67d8; }
+
+    .slot-btn .team-name { font-size: 10px; font-weight: 400; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-btn .watching-badge {
+      font-size: 9px; font-weight: 700; background: #f59e0b; color: #fff;
+      border-radius: 20px; padding: 1px 6px; letter-spacing: 0.3px; white-space: nowrap;
+    }
+    .slot-btn.selected .watching-badge { background: #5a67d8; }
+
+    .book-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #1a1a2e; color: #fff; font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+    .book-btn:hover:not(:disabled) { background: #2d2d4e; transform: translateY(-1px); }
+    .book-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+    .status { margin-top: 16px; padding: 16px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; line-height: 1.5; animation: fadeIn 0.2s ease; }
+    .status.success { background: #e8f5e9; border: 1.5px solid #a5d6a7; color: #2e7d32; }
+    .status.error { background: #fdecea; border: 1.5px solid #f5c6cb; color: #c62828; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Legend */
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0ede8; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+    .legend-dot.available { background: #fafaf8; border: 2px solid #dddad4; }
+    .legend-dot.watching { background: #fffbeb; border: 2px solid #f59e0b; }
+    .legend-dot.selected { background: #eef0ff; border: 2px solid #5a67d8; }
+    .legend-dot.booked { background: #f0efeb; border: 2px solid #e8e6e0; }
+
+    /* View page */
+    .view-header { margin-bottom: 24px; }
+    .view-title { font-family: 'Fraunces', serif; font-size: 26px; margin-bottom: 4px; }
+    .view-meta { font-size: 13px; color: #888; }
+    .bookings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+    .booking-card { border-radius: 14px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .booking-card .slot-label { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .booking-card .team { font-family: 'Fraunces', serif; font-size: 18px; color: #1a1a2e; margin-bottom: 6px; line-height: 1.2; }
+    .booking-card .time { font-size: 13px; font-weight: 600; color: #555; }
+    .booking-card .loc { font-size: 12px; color: #777; margin-top: 3px; }
+    .empty-state { background: #fff; border-radius: 16px; padding: 60px 20px; text-align: center; color: #aaa; font-size: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .loading { text-align: center; color: #aaa; padding: 40px; font-size: 14px; }
+    .refresh-dot { display: inline-block; width: 7px; height: 7px; background: #4caf50; border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    @media (max-width: 600px) {
+      .grid-header, .grid-row { grid-template-columns: 88px repeat(4, 1fr); }
+      .time-label { font-size: 11px; }
+      .slot-btn { font-size: 10px; min-height: 54px; padding: 6px 2px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BOOKING PAGE -->
+<div id="page-book" class="page active">
+  <header class="header">
+    <div class="header-inner">
+      <div>
+        <span class="header-title">Critical Friend</span>
+        <span class="header-sub">Interview Booking</span>
+      </div>
+      <a href="#" class="header-btn" onclick="showPage('view'); return false;">View All Bookings →</a>
+    </div>
+  </header>
+  <main>
+    <div class="card">
+      <label for="teamName">Your Team Name</label>
+      <input type="text" id="teamName" placeholder="e.g. The Innovators" maxlength="40" />
+    </div>
+    <div class="card">
+      <div class="slot-section-header">
+        <h2 class="slot-section-title">Select a Time Slot</h2>
+        <span class="location-badge">📍 Back of 2A</span>
+      </div>
+      <div class="grid-header">
+        <div></div>
+        <div class="grid-header-cell">Slot 1</div>
+        <div class="grid-header-cell">Slot 2</div>
+        <div class="grid-header-cell">Slot 3</div>
+        <div class="grid-header-cell">Slot 4</div>
+      </div>
+      <div id="slotGrid"><div class="loading">Loading slots…</div></div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot available"></div> Available</div>
+        <div class="legend-item"><div class="legend-dot watching"></div> Someone looking</div>
+        <div class="legend-item"><div class="legend-dot selected"></div> Your selection</div>
+        <div class="legend-item"><div class="legend-dot booked"></div> Booked</div>
+      </div>
+    </div>
+    <button class="book-btn" id="bookBtn" onclick="doBook()" disabled>Book Slot</button>
+    <div id="statusMsg" style="display:none"></div>
+  </main>
+</div>
+
+<!-- VIEW PAGE -->
+<div id="page-view" class="page">
+  <header class="header">
+    <div class="header-inner">
+      <div>
+        <span class="header-title">Critical Friend</span>
+        <span class="header-sub">All Bookings</span>
+      </div>
+      <a href="#" class="header-btn" onclick="showPage('book'); return false;">← Book a Slot</a>
+    </div>
+  </header>
+  <main>
+    <div class="view-header">
+      <div class="view-title">Interview Schedule</div>
+      <div class="view-meta"><span class="refresh-dot"></span>📍 Back of 2A &nbsp;·&nbsp; Updates every 5 seconds</div>
+    </div>
+    <div id="viewGrid"><div class="loading">Loading bookings…</div></div>
+  </main>
+</div>
+
+<script>
+const TIME_SLOTS = [
+  "12:15 – 12:25",
+  "12:30 – 12:40",
+  "12:45 – 12:55",
+  "1:40 – 1:50",
+  "1:55 – 2:05",
+  "2:10 – 2:20",
+];
+const SLOT_COUNT = 4;
+const LOCATION = "Back of 2A";
+const CARD_COLORS = [
+  "#fde8d8","#d8f0fd","#d8fde8","#fdf8d8",
+  "#edd8fd","#fdd8d8","#d8fdfa","#fde8f8",
+  "#e8fdd8","#d8e8fd","#fdf0d8","#d8fdee",
+];
+
+// Unique session ID for this browser tab
+const SESSION_ID = crypto.randomUUID();
+const API = "/api/bookings";
+
+let bookings = {};
+let watching = {};   // { [slotKey]: count } — others watching
+let selected = null;
+let currentPage = "book";
+let refreshTimer = null;
+
+// ─── API helpers ──────────────────────────────────────────────────────────────
+async function fetchState() {
+  try {
+    const res = await fetch(`${API}?session=${SESSION_ID}`);
+    const data = await res.json();
+    bookings = data.bookings || {};
+    watching = data.watching || {};
+  } catch (e) { console.error("Fetch error", e); }
+}
+
+async function sendPresence(slotKey) {
+  try {
+    await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "presence", slotKey: slotKey || null, sessionId: SESSION_ID }),
+    });
+  } catch {}
+}
+
+// Clear presence on tab close / navigate away
+window.addEventListener("beforeunload", () => {
+  // sendBeacon is more reliable than fetch on unload
+  const blob = new Blob(
+    [JSON.stringify({ action: "presence", slotKey: null, sessionId: SESSION_ID })],
+    { type: "application/json" }
+  );
+  navigator.sendBeacon(API, blob);
+});
+
+// ─── Page switching ───────────────────────────────────────────────────────────
+function showPage(page) {
+  currentPage = page;
+  document.getElementById("page-book").classList.toggle("active", page === "book");
+  document.getElementById("page-view").classList.toggle("active", page === "view");
+  clearInterval(refreshTimer);
+
+  if (page === "book") {
+    fetchState().then(renderBookGrid);
+    refreshTimer = setInterval(() => fetchState().then(renderBookGrid), 5000);
+  } else {
+    // Clear presence when leaving booking page
+    sendPresence(null);
+    fetchState().then(renderViewGrid);
+    refreshTimer = setInterval(() => fetchState().then(renderViewGrid), 5000);
+  }
+}
+
+// ─── Booking page ─────────────────────────────────────────────────────────────
+function renderBookGrid() {
+  const grid = document.getElementById("slotGrid");
+  if (!bookings || Object.keys(bookings).length === 0) {
+    grid.innerHTML = '<div class="loading">Loading slots…</div>';
+    return;
+  }
+
+  let html = "";
+  TIME_SLOTS.forEach(time => {
+    html += `<div class="grid-row">`;
+    html += `<div class="time-label">${time}</div>`;
+    for (let s = 1; s <= SLOT_COUNT; s++) {
+      const key = `${time}|${s}`;
+      const team = bookings[key];
+      const isBooked = !!team;
+      const isSelected = selected === key;
+      const watchCount = watching[key] || 0;
+      const isWatched = watchCount > 0 && !isBooked;
+
+      let cls = "slot-btn";
+      if (isBooked) cls += " booked";
+      else if (isSelected) cls += " selected" + (isWatched ? " watching" : "");
+      else if (isWatched) cls += " watching";
+
+      let inner = "";
+      if (isBooked) {
+        inner = `<span>✓</span><span class="team-name" title="${team}">${team}</span>`;
+      } else if (isSelected) {
+        inner = `<span>Selected</span>`;
+        if (isWatched) inner += `<span class="watching-badge">👀 ${watchCount} other${watchCount > 1 ? "s" : ""}</span>`;
+      } else {
+        inner = `<span>Available</span>`;
+        if (isWatched) inner += `<span class="watching-badge">👀 ${watchCount} looking</span>`;
+      }
+
+      html += `<button class="${cls}" ${isBooked ? "disabled" : ""} onclick="selectSlot('${key}')">${inner}</button>`;
+    }
+    html += `</div>`;
+  });
+
+  grid.innerHTML = html;
+  updateBookBtn();
+}
+
+function selectSlot(key) {
+  if (bookings[key]) return;
+  selected = (selected === key) ? null : key;
+  sendPresence(selected); // Tell server immediately
+  renderBookGrid();
+  updateBookBtn();
+}
+
+function updateBookBtn() {
+  const name = document.getElementById("teamName").value.trim();
+  document.getElementById("bookBtn").disabled = !selected || !name;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("teamName").addEventListener("input", updateBookBtn);
+});
+
+async function doBook() {
+  const teamName = document.getElementById("teamName").value.trim();
+  if (!teamName) { showStatus("error", "Please enter your team name."); return; }
+  if (!selected) { showStatus("error", "Please select a time slot."); return; }
+
+  const btn = document.getElementById("bookBtn");
+  btn.disabled = true;
+  btn.textContent = "Booking…";
+
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "book", slotKey: selected, teamName, sessionId: SESSION_ID }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      bookings = data.bookings;
+      watching = {};
+      const [time] = selected.split("|");
+      showStatus("success", `✅ <strong>${teamName}</strong> is booked for <strong>${time}</strong> at <strong>${LOCATION}</strong>.`);
+      selected = null;
+      document.getElementById("teamName").value = "";
+      renderBookGrid();
+      setTimeout(hideStatus, 5000);
+    } else {
+      await fetchState();
+      renderBookGrid();
+      showStatus("error", `⚠️ ${data.error || "Could not complete booking. Please try again."}`);
+    }
+  } catch {
+    showStatus("error", "⚠️ Network error. Please try again.");
+  }
+
+  btn.textContent = "Book Slot";
+  updateBookBtn();
+}
+
+function showStatus(type, html) {
+  const el = document.getElementById("statusMsg");
+  el.className = `status ${type}`;
+  el.innerHTML = html;
+  el.style.display = "block";
+}
+function hideStatus() {
+  document.getElementById("statusMsg").style.display = "none";
+}
+
+// ─── View page ────────────────────────────────────────────────────────────────
+function renderViewGrid() {
+  const grid = document.getElementById("viewGrid");
+  const all = [];
+  let colorIndex = 0;
+  TIME_SLOTS.forEach(time => {
+    for (let s = 1; s <= SLOT_COUNT; s++) {
+      const key = `${time}|${s}`;
+      const team = bookings[key];
+      if (team) all.push({ time, slot: s, team, color: CARD_COLORS[colorIndex++ % CARD_COLORS.length] });
+    }
+  });
+
+  if (all.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No bookings yet. Be the first! 🎉</div>';
+    return;
+  }
+
+  grid.innerHTML = `<div class="bookings-grid">${all.map(({ time, slot, team, color }) => `
+    <div class="booking-card" style="background:${color}">
+      <div class="slot-label">Slot ${slot}</div>
+      <div class="team">${team}</div>
+      <div class="time">🕐 ${time}</div>
+      <div class="loc">📍 ${LOCATION}</div>
+    </div>`).join("")}</div>`;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+(async () => {
+  await fetchState();
+  showPage("book");
+})();
+</script>
+</body>
+</html>
