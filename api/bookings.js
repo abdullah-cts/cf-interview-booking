@@ -6,7 +6,7 @@ const kv = new Redis({
 });
 
 const TIME_SLOTS = [
-  "12:15 PM– 12:25 PM",
+  "12:15 PM – 12:25 PM",
   "12:30 PM – 12:40 PM",
   "12:45 PM – 12:55 PM",
   "1:40 PM – 1:50 PM",
