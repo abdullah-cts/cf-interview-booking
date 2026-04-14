@@ -80,7 +80,10 @@
     .view-header { margin-bottom: 24px; }
     .view-title { font-family: 'Fraunces', serif; font-size: 26px; margin-bottom: 4px; }
     .view-meta { font-size: 13px; color: #888; }
-    .bookings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+    /*.bookings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; } */
+    .bookings-grid {display: grid; grid-template-columns: 1fr; gap: 12px;}
+    @media(min-width: 600px) {.bookings-grid {grid-template-columns: repeat(2, 1fr);}}
+    @media(min-width: 1024px) {.bookings-grid {grid-template-columns: repeat(3, 1fr);}}
     .booking-card { border-radius: 14px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
     .booking-card .slot-label { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
     .booking-card .team { font-family: 'Fraunces', serif; font-size: 18px; color: #1a1a2e; margin-bottom: 6px; line-height: 1.2; }
