@@ -1,7 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/delete", "destination": "/public/delete.html" },
-    { "source": "/(.*)", "destination": "/public/index.html" }
+    { "source": "/delete", "destination": "/delete.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
