@@ -135,9 +135,12 @@ export default async function handler(req, res) {
 
   // DELETE — reset all bookings and presence
   if (req.method === "DELETE") {
+    const { password } = req.body;
+    if (password !== process.env.ADMIN_PASSWORD)
+      return res.status(401).json({ error: "Forbidden." });
     await Promise.all([
       kv.set(BOOKINGS_KEY, emptyBookings()),
-      kv.set(PRESENCE_KEY, {}),
+      kv.del(PRESENCE_KEY),
     ]);
     return res.status(200).json({ success: true });
   }
