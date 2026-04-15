@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clear Bookings</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'DM Sans', sans-serif; background: #f5f3ef; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -22,17 +23,26 @@
     .status.error { background: #fdecea; border: 1px solid #f5c6cb; color: #c62828; }
     .back { display: block; text-align: center; margin-top: 18px; font-size: 13px; color: #888; text-decoration: none; }
     .back:hover { color: #1a1a2e; }
+    .header-section { text-align: center; margin-bottom: 32px; }
+    .header-icon { font-size: 64px; margin-bottom: 16px; }
+    .header-section h1 { font-size: 28px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
+    .header-section p { font-size: 14px; color: #888; margin: 0; }
   </style>
 </head>
 <body>
+  <div class="header-section">
+    <div class="header-icon"><i class="fa-solid fa-triangle-exclamation" style="color: rgb(255, 59, 59);"></i></div>
+    <h1>Admin</h1>
+    <p>Dangerous operation: Clear All Bookings</p>
+  </div>
   <div class="card">
-    <h1>Clear All Bookings</h1>
-    <p>This will permanently delete all interview bookings. Enter the admin password to continue.</p>
-    <label for="pwd">Password</label>
+    <!--<h1>Clear All Bookings</h1> -->
+    <label for="pwd">Admin Password</label>
     <input type="password" id="pwd" placeholder="Enter admin password" />
-    <button id="btn" onclick="doDelete()">Clear All Bookings</button>
+    <p style="font-size: 14px; color: #888; margin: 0;">Enter your admin password to authorise the deletion of all bookings. This action is irreversible.</p>
+    <button id="btn" onclick="doDelete()">Delete All Bookings</button>
     <div id="status" class="status"></div>
-    <a href="/" class="back">← Back to booking page</a>
+    <a href="/" class="back">← Cancel and Return to Booking</a>
   </div>
   <script>
     async function doDelete() {
