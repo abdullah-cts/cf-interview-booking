@@ -15,7 +15,7 @@
     label { display: block; font-size: 15px; font-weight: 600; color: #444; margin-bottom: 8px; }
     input[type=password] { width: 100%; padding: 11px 13px; border: 1.5px solid #e0ddd8; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; margin-bottom: 16px; transition: border 0.15s; }
     input[type=password]:focus { border-color: #e53e3e; }
-    button { width: 100%; padding: 13px; border-radius: 10px; border: none; background: #e53e3e; color: #fff; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; }
+    button { width: 100%; padding: 13px; border-radius: 10px; border: none; background: #e53e3e; color: #fff; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     button:hover:not(:disabled) { background: #c53030; }
     button:disabled { background: #ccc; cursor: not-allowed; }
     .status { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; display: none; }
@@ -40,7 +40,7 @@
     <label for="pwd">Admin Password</label>
     <input type="password" id="pwd" placeholder="Enter admin password" />
     <p style="font-size: 12px; color: #888; margin: 0 0 20px 0;">Enter your admin password to authorise the deletion of all bookings. This action is irreversible.</p>
-    <button id="btn" onclick="doDelete()">Delete All Bookings</button>
+    <button id="btn" onclick="doDelete()"><i class="fa-solid fa-trash"></i> Delete All Bookings</button>
     <div id="status" class="status"></div>
     <a href="/" class="back">← Cancel and Return to Booking</a>
   </div>
