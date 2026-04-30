@@ -117,11 +117,11 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing slotKey or teamName." });
 
       const [time, slot] = slotKey.split("|");
-      if (!TIME_SLOTS.includes(time) || !["1","2","3","4"].includes(slot))
+      if (!TIME_SLOTS.includes(time) || !["1", "2", "3", "4"].includes(slot))
         return res.status(400).json({ error: "Invalid slot." });
 
       const bookings = await getBookings();
-      
+
       // Feature #2: Prevent multiple bookings per team (case-insensitive + internal space normalization)
       const normalize = (name) => name ? name.trim().toLowerCase().replace(/\s+/g, ' ') : "";
       const normalizedNewTeam = normalize(teamName);
@@ -131,7 +131,7 @@ export default async function handler(req, res) {
 
       if (alreadyBooked) {
         return res.status(409).json({
-          error: "Your team has already booked a slot. Each team is limited to one booking. Please speak with your industry leader if you need to modify your booking.",
+          error: "Your team has already booked a slot. Each team is limited to one booking. Please speak with your industry leader if you need to modify your existing booking.",
         });
       }
 
