@@ -122,10 +122,11 @@ export default async function handler(req, res) {
 
       const bookings = await getBookings();
       
-      // Feature #2: Prevent multiple bookings per team (case-insensitive)
-      const normalizedNewTeam = teamName.trim().toLowerCase();
+      // Feature #2: Prevent multiple bookings per team (case-insensitive + internal space normalization)
+      const normalize = (name) => name ? name.trim().toLowerCase().replace(/\s+/g, ' ') : "";
+      const normalizedNewTeam = normalize(teamName);
       const alreadyBooked = Object.values(bookings).some(
-        (existingTeam) => existingTeam && existingTeam.trim().toLowerCase() === normalizedNewTeam
+        (existingTeam) => normalize(existingTeam) === normalizedNewTeam
       );
 
       if (alreadyBooked) {
