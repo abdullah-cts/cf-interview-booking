@@ -127,14 +127,13 @@
     <div class="card">
       <div class="slot-section-header">
         <h2 class="slot-section-title">Select a Time Slot</h2>
-        <span class="location-badge">📍 Back of 2A</span>
       </div>
       <div class="grid-header">
         <div></div>
-        <div class="grid-header-cell">Slot 1</div>
-        <div class="grid-header-cell">Slot 2</div>
-        <div class="grid-header-cell">Slot 3</div>
-        <div class="grid-header-cell">Slot 4</div>
+        <div class="grid-header-cell">2A</div>
+        <div class="grid-header-cell">Outside Fab Lab</div>
+        <div class="grid-header-cell">Robotics Lab</div>
+        <div class="grid-header-cell">Digi Lab</div>
       </div>
       <div id="slotGrid"><div class="loading">Loading slots…</div></div>
 
@@ -165,7 +164,7 @@
   <main>
     <div class="view-header">
       <div class="view-title">Interview Schedule</div>
-      <div class="view-meta"><span class="refresh-dot"></span>📍 Back of 2A &nbsp;·&nbsp; Updates every 5 seconds</div>
+      <div class="view-meta"><span class="refresh-dot"></span>Updates every 5 seconds</div>
     </div>
     <div id="viewGrid"><div class="loading">Loading bookings…</div></div>
   </main>
@@ -181,7 +180,12 @@ const TIME_SLOTS = [
   "2:10 PM – 2:20 PM",
 ];
 const SLOT_COUNT = 4;
-const LOCATION = "Back of 2A";
+const LOCATIONS = [
+  "2A",
+  "Outside the Fab Lab",
+  "Robotics Lab / Forum",
+  "Digi Lab"
+];
 const CARD_COLORS = [
   "#fde8d8","#d8f0fd","#d8fde8","#fdf8d8",
   "#edd8fd","#fdd8d8","#d8fdfa","#fde8f8",
@@ -265,6 +269,7 @@ function renderBookGrid() {
       const isSelected = selected === key;
       const watchCount = watching[key] || 0;
       const isWatched = watchCount > 0 && !isBooked;
+      const location = LOCATIONS[s - 1];
 
       let cls = "slot-btn";
       if (isBooked) cls += " booked";
@@ -273,12 +278,12 @@ function renderBookGrid() {
 
       let inner = "";
       if (isBooked) {
-        inner = `<span>✓</span><span class="team-name" title="${team}">${team}</span>`;
+        inner = `<span>✓</span><span class="team-name" title="${team}">${team}</span><span class="location-badge" style="font-size: 8px; margin-top: 2px; color: #888;">${location}</span>`;
       } else if (isSelected) {
-        inner = `<span>Selected</span>`;
+        inner = `<span>Selected</span><span style="font-size: 9px; opacity: 0.7;">${location}</span>`;
         if (isWatched) inner += `<span class="watching-badge">👀 ${watchCount} other${watchCount > 1 ? "s" : ""}</span>`;
       } else {
-        inner = `<span>Available</span>`;
+        inner = `<span>Available</span><span style="font-size: 9px; opacity: 0.7;">${location}</span>`;
         if (isWatched) inner += `<span class="watching-badge">👀 ${watchCount} looking</span>`;
       }
 
@@ -328,8 +333,9 @@ async function doBook() {
     if (res.ok) {
       bookings = data.bookings;
       watching = {};
-      const [time] = selected.split("|");
-      showStatus("success", `✅ <strong>${teamName}</strong> is booked for <strong>${time}</strong> at <strong>${LOCATION}</strong>.`);
+      const [time, slotIdx] = selected.split("|");
+      const location = LOCATIONS[parseInt(slotIdx) - 1];
+      showStatus("success", `✅ <strong>${teamName}</strong> is booked for <strong>${time}</strong> at <strong>${location}</strong>.`);
       selected = null;
       document.getElementById("teamName").value = "";
       renderBookGrid();
@@ -380,7 +386,7 @@ function renderViewGrid() {
       <div class="confirmed-status">CONFIRMED</div>
       <div class="team">${team}</div>
       <div class="time">🕐 ${time}</div>
-      <div class="loc">📍 ${LOCATION}</div>
+      <div class="loc">📍 ${LOCATIONS[slot - 1]}</div>
     </div>`).join("")}</div>`;
 }
 

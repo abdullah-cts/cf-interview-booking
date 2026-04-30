@@ -13,6 +13,12 @@ const TIME_SLOTS = [
   "1:55 PM – 2:05 PM",
   "2:10 PM – 2:20 PM",
 ];
+const LOCATIONS = [
+  "2A",
+  "Outside the Fab Lab",
+  "Robotics Lab / Forum",
+  "Digi Lab"
+];
 const SLOT_COUNT = 4;
 const BOOKINGS_KEY = "cf-bookings";
 const PRESENCE_KEY = "cf-presence";
