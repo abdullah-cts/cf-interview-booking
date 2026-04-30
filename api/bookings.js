@@ -121,6 +121,19 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Invalid slot." });
 
       const bookings = await getBookings();
+      
+      // Feature #2: Prevent multiple bookings per team (case-insensitive)
+      const normalizedNewTeam = teamName.trim().toLowerCase();
+      const alreadyBooked = Object.values(bookings).some(
+        (existingTeam) => existingTeam && existingTeam.trim().toLowerCase() === normalizedNewTeam
+      );
+
+      if (alreadyBooked) {
+        return res.status(409).json({
+          error: "Your team has already booked a slot. Each team is limited to one booking. Please speak with your industry leader if you need to modify your booking.",
+        });
+      }
+
       if (bookings[slotKey])
         return res.status(409).json({ error: "Slot already booked." });
 
