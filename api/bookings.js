@@ -150,6 +150,19 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, bookings });
     }
 
+    // ── Delete a single slot ──
+    if (action === "deleteSlot") {
+      const { password } = req.body;
+      if (password !== process.env.ADMIN_PASSWORD)
+        return res.status(401).json({ error: "Forbidden." });
+      if (!slotKey) return res.status(400).json({ error: "Missing slotKey." });
+
+      const bookings = await getBookings();
+      bookings[slotKey] = null;
+      await kv.set(BOOKINGS_KEY, bookings);
+      return res.status(200).json({ success: true, bookings });
+    }
+
     return res.status(400).json({ error: "Unknown action." });
   }
 

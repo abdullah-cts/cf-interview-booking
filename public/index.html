@@ -85,13 +85,22 @@
     .bookings-grid {display: grid; grid-template-columns: 1fr; gap: 12px;}
     @media(min-width: 600px) {.bookings-grid {grid-template-columns: repeat(2, 1fr);}}
     @media(min-width: 1024px) {.bookings-grid {grid-template-columns: repeat(3, 1fr);}}
-    .booking-card { border-radius: 14px; padding: 40px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
-    .booking-card .slot-label { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
-    .booking-card .team { font-family: 'Fraunces', serif; font-size: 24px; color: #1a1a2e; margin-bottom: 16px; line-height: 1.3; font-weight: 700; }
-    .booking-card .time { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; }
-    .booking-card .confirmed-status { font-size: 16px; font-weight: 600; color: #333; padding-bottom: 16px; margin-bottom: 0; }
-    .booking-card .loc { font-size: 14px; color: #555; margin-top: 4px; font-weight: 500; }
-    .empty-state { background: #fff; border-radius: 16px; padding: 60px 20px; text-align: center; color: #aaa; font-size: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .booking-card { border-radius: 14px; padding: 40px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); min-height: 180px; display: flex; flex-direction: column; justify-content: center; position: relative; }
+    .card-menu-btn { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.05); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #1a1a2e; transition: background 0.2s; }
+    .card-menu-btn:hover { background: rgba(0,0,0,0.1); }
+    
+    /* Overlay Styles */
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .overlay.active { display: flex; }
+    .overlay-content { background: #fff; border-radius: 16px; padding: 24px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .overlay-title { font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 8px; color: #1a1a2e; }
+    .overlay-desc { font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.4; }
+    .overlay-input { width: 100%; padding: 10px 12px; border: 1.5px solid #e0ddd8; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 16px; }
+    .overlay-actions { display: flex; gap: 8px; }
+    .overlay-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .overlay-btn.cancel { background: #f0efeb; color: #666; }
+    .overlay-btn.delete { background: #e53e3e; color: #fff; }
+
     .loading { text-align: center; color: #aaa; padding: 40px; font-size: 14px; }
     .refresh-dot { display: inline-block; width: 7px; height: 7px; background: #4caf50; border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -170,6 +179,19 @@
   </main>
 </div>
 
+<!-- DELETE OVERLAY -->
+<div id="deleteOverlay" class="overlay">
+  <div class="overlay-content">
+    <h3 class="overlay-title">Delete Booking</h3>
+    <p class="overlay-desc" id="deleteDesc">Are you sure you want to delete this booking?</p>
+    <input type="password" id="deletePwd" class="overlay-input" placeholder="Admin Password" />
+    <div class="overlay-actions">
+      <button class="overlay-btn cancel" onclick="closeDeleteModal()">Cancel</button>
+      <button class="overlay-btn delete" id="confirmDeleteBtn" onclick="confirmDeleteSlot()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const TIME_SLOTS = [
   "12:15 PM – 12:25 PM",
@@ -199,6 +221,7 @@ const API = "/api/bookings";
 let bookings = {};
 let watching = {};   // { [slotKey]: count } — others watching
 let selected = null;
+let slotToDelete = null;
 let currentPage = "book";
 let refreshTimer = null;
 
@@ -383,11 +406,60 @@ function renderViewGrid() {
 
   grid.innerHTML = `<div class="bookings-grid">${all.map(({ time, slot, team, color }) => `
     <div class="booking-card" style="background:${color}">
+      <button class="card-menu-btn" onclick="openDeleteModal('${time}|${slot}', '${team.replace(/'/g, "\\'")}')">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+      </button>
       <div class="confirmed-status">CONFIRMED</div>
       <div class="team">${team}</div>
       <div class="time">🕐 ${time}</div>
       <div class="loc">📍 ${LOCATIONS[slot - 1]}</div>
     </div>`).join("")}</div>`;
+}
+
+// ─── Delete Slot logic ────────────────────────────────────────────────────────
+function openDeleteModal(slotKey, teamName) {
+  slotToDelete = slotKey;
+  document.getElementById("deleteDesc").innerHTML = `Are you sure you want to delete the booking for <strong>${teamName}</strong>?`;
+  document.getElementById("deletePwd").value = "";
+  document.getElementById("deleteOverlay").classList.add("active");
+  document.getElementById("deletePwd").focus();
+}
+
+function closeDeleteModal() {
+  document.getElementById("deleteOverlay").classList.remove("active");
+  slotToDelete = null;
+}
+
+async function confirmDeleteSlot() {
+  const password = document.getElementById("deletePwd").value;
+  if (!password) return;
+
+  const btn = document.getElementById("confirmDeleteBtn");
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "deleteSlot", slotKey: slotToDelete, password, sessionId: SESSION_ID }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      bookings = data.bookings;
+      renderViewGrid();
+      closeDeleteModal();
+    } else {
+      alert(data.error || "Could not delete booking.");
+    }
+  } catch (e) {
+    alert("Network error.");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
