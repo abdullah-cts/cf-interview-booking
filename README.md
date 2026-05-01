@@ -1,28 +1,33 @@
-# Critical Friend – Interview Booking System v2
+# Critical Friend – Interview Booking System
 
-A simple web app for teams to book 10-minute interview slots, with live
-"someone is looking" presence indicators for multi-user awareness.
-
----
-
-## What's New in v2
-
-- **Presence awareness** — when a user selects a slot (without booking),
-  other users see a 👀 "X looking" warning badge on that slot in amber.
-- Presence clears automatically when the user deselects, navigates away,
-  or closes the tab (`beforeunload` + `sendBeacon`).
-- 60-second server-side TTL as a safety net (in case the browser crashes).
+A premium, real-time web application for teams to book 10-minute interview slots. Built for speed, clarity, and multi-user awareness.
 
 ---
 
-## Project Structure
+## ✨ Key Features
+
+- **Presence Awareness** — Real-time 👀 "Someone looking" indicators. When a user selects a slot, other users see an amber warning badge instantly, preventing double-booking attempts before they happen.
+- **Multi-Location Support** — Supports multiple concurrent interviews across four distinct locations:
+  - **2A**
+  - **Outside the Fab Lab**
+  - **Robotics Lab / Forum**
+  - **Digi Lab**
+- **Smart Team Validation** — Enforces a "One Booking Per Team" rule with advanced name normalization (ignores case differences and extra internal whitespace) to ensure fair access for everyone.
+- **Admin Management** — Secure administrative controls to manage the schedule:
+  - **Individual Deletion**: Admins can remove specific bookings via a password-protected modal on the View page.
+  - **Global Reset**: Ability to clear the entire schedule for a new round of interviews.
+- **Live Updates** — The View page automatically refreshes every 5 seconds to show the latest confirmed bookings.
+
+---
+
+## 🛠️ Project Structure
 
 ```
 cf-booking/
 ├── api/
 │   └── bookings.js       ← Serverless API (GET / POST / DELETE)
 ├── public/
-│   └── index.html        ← Frontend (booking + view pages)
+│   └── index.html        ← Frontend (Booking + View pages)
 ├── package.json
 ├── vercel.json
 └── .gitignore
@@ -30,15 +35,11 @@ cf-booking/
 
 ---
 
-## Deploy to Vercel (Step-by-Step)
+## 🚀 Deployment (Vercel + Upstash)
 
-### Step 1 — Create a GitHub repository
-
-1. Go to https://github.com and sign in (or create a free account).
-2. Click **New repository** → name it `cf-interview-booking`.
-3. Click **Create repository**.
-4. Upload all files (keeping folder structure) via the GitHub web UI,
-   or use Git:
+### 1. Create a GitHub Repository
+1. Create a new repo named `cf-interview-booking`.
+2. Push the code:
    ```bash
    git init
    git add .
@@ -47,53 +48,47 @@ cf-booking/
    git push -u origin main
    ```
 
-### Step 2 — Import to Vercel
+### 2. Import to Vercel
+1. Go to [Vercel](https://vercel.com) → **Add New Project** → Import your repo.
+2. **Environment Variables**: Add `ADMIN_PASSWORD` (used for deleting/resetting bookings).
+3. Click **Deploy**.
 
-1. Go to https://vercel.com → **Sign Up** → **Continue with GitHub**.
-2. Click **Add New… → Project** → find your repo → **Import**.
-3. Leave all settings as default → **Deploy**.
-
-### Step 3 — Add Vercel KV (free database)
-
-1. In your Vercel project dashboard → **Storage** tab.
-2. Click **Create Database** → **KV** → name it `cf-bookings-kv` → **Hobby** plan.
-3. Click **Create & Continue** → **Connect** to link it to your project.
-   Vercel automatically adds the required environment variables.
-
-### Step 4 — Redeploy
-
-1. Go to **Deployments** tab → click **⋯** next to latest → **Redeploy**.
-2. Wait ~30 seconds.
-
-### Step 5 — Done! 🎉
-
-Your app is live at `https://cf-interview-booking.vercel.app`.
-Share the URL with your teams.
+### 3. Add Vercel KV (Upstash Redis)
+1. In your Vercel project dashboard, go to the **Storage** tab.
+2. Click **Create Database** → **KV** → Name it `cf-bookings-kv`.
+3. Click **Connect** to link it to your project.
+4. **Redeploy** the project to pick up the new KV environment variables.
 
 ---
 
-## Resetting All Bookings
+## 🔐 Administrative Actions
 
-```bash
-curl -X DELETE https://your-app.vercel.app/api/bookings
-```
+### Delete a Single Booking
+1. Navigate to the **View All Bookings** page.
+2. Click the three-dot menu (⋮) on the booking card you wish to remove.
+3. Enter the `ADMIN_PASSWORD` and confirm.
 
-Or in browser console (F12):
+### Reset All Bookings
+Run this in your browser console (F12) while on the app URL:
 ```javascript
-fetch('/api/bookings', { method: 'DELETE' }).then(r => r.json()).then(console.log)
+fetch('/api/bookings', { 
+  method: 'DELETE',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ password: 'YOUR_ADMIN_PASSWORD' })
+}).then(r => r.json()).then(console.log)
 ```
 
 ---
 
-## Slot Reference
+## 📅 Slot Reference
 
-| Time          | Capacity |
-|---------------|----------|
-| 12:15 – 12:25 | 4 slots  |
-| 12:30 – 12:40 | 4 slots  |
-| 12:45 – 12:55 | 4 slots  |
-| 1:40 – 1:50   | 4 slots  |
-| 1:55 – 2:05   | 4 slots  |
-| 2:10 – 2:20   | 4 slots  |
+The system supports **24 total slots** across 6 time blocks and 4 locations.
 
-**Total capacity: 24 bookings · Location: Back of 2A**
+| Time Block | 2A | Outside Fab Lab | Robotics Lab | Digi Lab |
+| :--- | :---: | :---: | :---: | :---: |
+| **12:15 – 12:25** | ✅ | ✅ | ✅ | ✅ |
+| **12:30 – 12:40** | ✅ | ✅ | ✅ | ✅ |
+| **12:45 – 12:55** | ✅ | ✅ | ✅ | ✅ |
+| **1:40 – 1:50** | ✅ | ✅ | ✅ | ✅ |
+| **1:55 – 2:05** | ✅ | ✅ | ✅ | ✅ |
+| **2:10 – 2:20** | ✅ | ✅ | ✅ | ✅ |
