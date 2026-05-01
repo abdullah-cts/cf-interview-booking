@@ -27,7 +27,8 @@ cf-booking/
 ├── api/
 │   └── bookings.js       ← Serverless API (GET / POST / DELETE)
 ├── public/
-│   └── index.html        ← Frontend (Booking + View pages)
+│   ├── index.html        ← Frontend (Booking + View pages)
+│   └── delete.html       ← Admin Reset page
 ├── package.json
 ├── vercel.json
 └── .gitignore
@@ -69,7 +70,10 @@ cf-booking/
 3. Enter the `ADMIN_PASSWORD` and confirm.
 
 ### Reset All Bookings
-Run this in your browser console (F12) while on the app URL:
+There are two ways to clear the entire schedule:
+
+1. **Admin Page (Recommended)**: Navigate to `/delete` on your app's URL. Enter the `ADMIN_PASSWORD` and click **Delete All Bookings**.
+2. **Browser Console**: Run this in your browser console (F12) while on the app URL:
 ```javascript
 fetch('/api/bookings', { 
   method: 'DELETE',
