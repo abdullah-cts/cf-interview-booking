@@ -68,6 +68,40 @@ function presenceCounts(presence, excludeSession = null) {
   return counts;
 }
 
+// Log deletion actions to Upstash
+async function logDeletion(req, actionType, details = "") {
+  try {
+    const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'Unknown IP';
+    const ua = req.headers['user-agent'] || '';
+    let os = "Unknown OS";
+    if (/windows/i.test(ua)) os = "Windows";
+    else if (/macintosh|mac os x/i.test(ua)) os = "Mac OS";
+    else if (/android/i.test(ua)) os = "Android";
+    else if (/ios|iphone|ipad|ipod/i.test(ua)) os = "iOS";
+    else if (/linux/i.test(ua)) os = "Linux";
+
+    const timestamp = Date.now();
+    const sydneyTime = new Date(timestamp).toLocaleString("en-AU", { timeZone: "Australia/Sydney" });
+
+    const logEntry = {
+      timestamp: sydneyTime,
+      epoch: timestamp,
+      action: actionType,
+      details,
+      os,
+      ip
+    };
+
+    const LOGS_KEY = "cf-logs";
+    await kv.zadd(LOGS_KEY, { score: timestamp, member: JSON.stringify(logEntry) });
+
+    const oneWeekAgo = timestamp - 7 * 24 * 60 * 60 * 1000;
+    await kv.zremrangebyscore(LOGS_KEY, "-inf", oneWeekAgo);
+  } catch (error) {
+    console.error("Failed to log deletion:", error);
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
@@ -158,8 +192,12 @@ export default async function handler(req, res) {
       if (!slotKey) return res.status(400).json({ error: "Missing slotKey." });
 
       const bookings = await getBookings();
+      const existingTeam = bookings[slotKey];
       bookings[slotKey] = null;
       await kv.set(BOOKINGS_KEY, bookings);
+
+      await logDeletion(req, "Single entry delete", `Slot: ${slotKey}, Team: ${existingTeam || 'Empty'}`);
+
       return res.status(200).json({ success: true, bookings });
     }
 
@@ -175,6 +213,9 @@ export default async function handler(req, res) {
       kv.set(BOOKINGS_KEY, emptyBookings()),
       kv.del(PRESENCE_KEY),
     ]);
+
+    await logDeletion(req, "Full delete", "All bookings and presence cleared");
+
     return res.status(200).json({ success: true });
   }
 

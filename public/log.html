@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Logs</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #f5f3ef; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 40px 24px; }
+    .card { background: #fff; border-radius: 16px; padding: 36px; width: 100%; max-width: 800px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h1 { font-size: 20px; font-weight: 600; color: #1a1a2e; margin-bottom: 6px; }
+    p { font-size: 14px; color: #888; margin-bottom: 24px; }
+    label { display: block; font-size: 15px; font-weight: 600; color: #444; margin-bottom: 8px; }
+    input[type=password] { width: 100%; padding: 11px 13px; border: 1.5px solid #e0ddd8; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; margin-bottom: 16px; transition: border 0.15s; }
+    input[type=password]:focus { border-color: #3b82f6; }
+    button { width: 100%; padding: 13px; border-radius: 10px; border: none; background: #3b82f6; color: #fff; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    button:hover:not(:disabled) { background: #2563eb; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .status { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; display: none; }
+    .status.error { background: #fdecea; border: 1px solid #f5c6cb; color: #c62828; }
+    .back { display: block; text-align: center; margin-top: 18px; font-size: 13px; color: #888; text-decoration: none; }
+    .back:hover { color: #1a1a2e; }
+    .header-section { text-align: center; margin-bottom: 32px; }
+    .header-icon { font-size: 64px; margin-bottom: 16px; color: #3b82f6; }
+    .header-section h1 { font-size: 28px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
+    .header-section p { font-size: 14px; color: #888; margin: 0; }
+    
+    #logs-container { display: none; margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th, td { padding: 12px; border-bottom: 1px solid #eee; }
+    th { font-weight: 600; color: #444; background: #f8f9fa; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-full { background: #fee2e2; color: #ef4444; }
+    .badge-single { background: #e0f2fe; color: #0ea5e9; }
+    .empty-logs { text-align: center; padding: 24px; color: #888; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="header-section">
+    <div class="header-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+    <h1>System Logs</h1>
+    <p>View recent deletion activities</p>
+  </div>
+  
+  <div class="card" id="auth-card" style="max-width: 380px;">
+    <label for="pwd">Admin Password</label>
+    <input type="password" id="pwd" placeholder="Enter admin password" />
+    <button id="btn" onclick="fetchLogs()"><i class="fa-solid fa-lock-open"></i> View Logs</button>
+    <div id="status" class="status"></div>
+    <a href="/" class="back">← Return to Booking</a>
+  </div>
+
+  <div class="card" id="logs-card" style="display: none; max-width: 1000px;">
+    <div id="logs-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Action</th>
+            <th>Details</th>
+            <th>OS</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody id="logs-body">
+          <!-- Logs will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+    <a href="/" class="back" style="margin-top: 24px;">← Return to Booking</a>
+  </div>
+
+  <script>
+    async function fetchLogs() {
+      const password = document.getElementById("pwd").value;
+      if (!password) return;
+      const btn = document.getElementById("btn");
+      btn.disabled = true;
+      btn.textContent = "Loading…";
+      
+      try {
+        const res = await fetch("/api/logs?password=" + encodeURIComponent(password));
+        const data = await res.json();
+        
+        if (res.ok) {
+          document.getElementById("auth-card").style.display = "none";
+          document.getElementById("logs-card").style.display = "block";
+          document.getElementById("logs-container").style.display = "block";
+          
+          const tbody = document.getElementById("logs-body");
+          tbody.innerHTML = "";
+          
+          if (!data.logs || data.logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-logs">No logs found in the last 7 days.</td></tr>';
+          } else {
+            data.logs.forEach(logStr => {
+              try {
+                const log = JSON.parse(logStr);
+                const tr = document.createElement("tr");
+                
+                const badgeClass = log.action === "Full delete" ? "badge-full" : "badge-single";
+                
+                tr.innerHTML = `
+                  <td style="white-space: nowrap;">${log.timestamp || 'Unknown'}</td>
+                  <td><span class="badge ${badgeClass}">${log.action}</span></td>
+                  <td>${log.details || '-'}</td>
+                  <td>${log.os || 'Unknown'}</td>
+                  <td style="font-family: monospace; color: #666;">${log.ip || 'Unknown'}</td>
+                `;
+                tbody.appendChild(tr);
+              } catch (e) {
+                console.error("Failed to parse log entry:", logStr);
+              }
+            });
+          }
+        } else {
+          const el = document.getElementById("status");
+          el.style.display = "block";
+          el.className = "status error";
+          el.textContent = `⚠️ ${data.error || "Something went wrong."}`;
+        }
+      } catch (e) {
+        const el = document.getElementById("status");
+        el.style.display = "block";
+        el.className = "status error";
+        el.textContent = "⚠️ Network error. Please try again.";
+      }
+      
+      btn.disabled = false;
+      btn.textContent = "View Logs";
+    }
+
+    document.getElementById("pwd").addEventListener("keydown", e => {
+      if (e.key === "Enter") fetchLogs();
+    });
+  </script>
+</body>
+</html>
