@@ -81,7 +81,7 @@
       btn.textContent = "Loading…";
       
       try {
-        const res = await fetch("/api/logs?password=" + encodeURIComponent(password));
+        const res = await fetch("/api/logs?password=" + encodeURIComponent(password) + "&t=" + Date.now());
         const data = await res.json();
         
         if (res.ok) {
@@ -95,9 +95,9 @@
           if (!data.logs || data.logs.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="empty-logs">No logs found in the last 7 days.</td></tr>';
           } else {
-            data.logs.forEach(logStr => {
+            data.logs.forEach(logItem => {
               try {
-                const log = JSON.parse(logStr);
+                const log = typeof logItem === "string" ? JSON.parse(logItem) : logItem;
                 const tr = document.createElement("tr");
                 
                 const badgeClass = log.action === "Full delete" ? "badge-full" : "badge-single";
@@ -111,7 +111,7 @@
                 `;
                 tbody.appendChild(tr);
               } catch (e) {
-                console.error("Failed to parse log entry:", logStr);
+                console.error("Failed to parse log entry:", logItem, e);
               }
             });
           }
