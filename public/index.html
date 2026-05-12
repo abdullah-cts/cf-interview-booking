@@ -78,7 +78,11 @@
     .legend-dot.booked { background: #f0efeb; border: 2px solid #e8e6e0; }
 
     /* View page */
-    .view-header { margin-bottom: 24px; }
+    .view-header { margin-bottom: 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .view-header-left { flex: 1; }
+    .view-header-right { flex-shrink: 0; }
+    .location-filter { padding: 10px 14px; border: 1.5px solid #e0ddd8; border-radius: 10px; font-size: 14px; font-family: inherit; font-weight: 500; color: #1a1a2e; outline: none; background: #fff; cursor: pointer; transition: border 0.15s; }
+    .location-filter:focus, .location-filter:hover { border-color: #5a67d8; }
     .view-title { font-family: 'Fraunces', serif; font-size: 26px; margin-bottom: 4px; }
     .view-meta { font-size: 13px; color: #888; }
     /*.bookings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; } */
@@ -177,8 +181,19 @@
   </header>
   <main>
     <div class="view-header">
-      <div class="view-title">Interview Schedule</div>
-      <div class="view-meta"><span class="refresh-dot"></span>Updates every 5 seconds</div>
+      <div class="view-header-left">
+        <div class="view-title">Interview Schedule</div>
+        <div class="view-meta"><span class="refresh-dot"></span>Updates every 5 seconds</div>
+      </div>
+      <div class="view-header-right">
+        <select id="locationFilter" class="location-filter" onchange="renderViewGrid()">
+          <option value="all">All Locations</option>
+          <option value="1">2A</option>
+          <option value="2">Outside the Fab Lab</option>
+          <option value="3">Robotics Lab / Forum</option>
+          <option value="4">Digi Lab</option>
+        </select>
+      </div>
     </div>
     <div id="viewGrid"><div class="loading">Loading bookings…</div></div>
   </main>
@@ -394,10 +409,15 @@ function hideStatus() {
 // ─── View page ────────────────────────────────────────────────────────────────
 function renderViewGrid() {
   const grid = document.getElementById("viewGrid");
+  const filterEl = document.getElementById("locationFilter");
+  const filterVal = filterEl ? filterEl.value : "all";
+
   const all = [];
   let colorIndex = 0;
   TIME_SLOTS.forEach(time => {
     for (let s = 1; s <= SLOT_COUNT; s++) {
+      if (filterVal !== "all" && parseInt(filterVal) !== s) continue;
+      
       const key = `${time}|${s}`;
       const team = bookings[key];
       if (team) all.push({ time, slot: s, team, color: CARD_COLORS[colorIndex++ % CARD_COLORS.length] });
