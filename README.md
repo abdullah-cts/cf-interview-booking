@@ -1,6 +1,6 @@
 # Critical Friend – Interview Booking System
 
-A premium, real-time web application for teams to book 10-minute interview slots. Built for speed, clarity, and multi-user awareness.
+A premium, real-time web application for teams to book 10-minute interview slots. Built for speed, clarity, multi-location scheduling, and admin auditability.
 
 ---
 
@@ -13,9 +13,11 @@ A premium, real-time web application for teams to book 10-minute interview slots
   - **Robotics Lab / Forum**
   - **Digi Lab**
 - **Smart Team Validation** — Enforces a "One Booking Per Team" rule with advanced name normalization (ignores case differences and extra internal whitespace) to ensure fair access for everyone.
+- **Filtering by Location** — The View page includes a location filter so admins and users can scope the schedule to one room or view all bookings at once.
 - **Admin Management** — Secure administrative controls to manage the schedule:
   - **Individual Deletion**: Admins can remove specific bookings via a password-protected modal on the View page.
   - **Global Reset**: Ability to clear the entire schedule for a new round of interviews.
+- **Audit Logging** — Delete actions are recorded in Upstash logs with timestamps, action type, slot details, operating system, and request IP.
 - **Live Updates** — The View page automatically refreshes every 5 seconds to show the latest confirmed bookings.
 
 ---
@@ -25,7 +27,8 @@ A premium, real-time web application for teams to book 10-minute interview slots
 ```
 cf-booking/
 ├── api/
-│   └── bookings.js       ← Serverless API (GET / POST / DELETE)
+│   ├── bookings.js       ← Booking and presence API (GET / POST / DELETE)
+│   └── logs.js           ← Admin logs API (GET)
 ├── public/
 │   ├── index.html        ← Frontend (Booking + View pages)
 │   └── delete.html       ← Admin Reset page
@@ -51,14 +54,17 @@ cf-booking/
 
 ### 2. Import to Vercel
 1. Go to [Vercel](https://vercel.com) → **Add New Project** → Import your repo.
-2. **Environment Variables**: Add `ADMIN_PASSWORD` (used for deleting/resetting bookings).
+2. Add the following environment variables:
+   - `ADMIN_PASSWORD`
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
 3. Click **Deploy**.
 
 ### 3. Add Vercel KV (Upstash Redis)
 1. In your Vercel project dashboard, go to the **Storage** tab.
 2. Click **Create Database** → **KV** → Name it `cf-bookings-kv`.
 3. Click **Connect** to link it to your project.
-4. **Redeploy** the project to pick up the new KV environment variables.
+4. Redeploy the project to pick up the new KV environment variables.
 
 ---
 
@@ -82,6 +88,28 @@ fetch('/api/bookings', {
 }).then(r => r.json()).then(console.log)
 ```
 
+### View Audit Logs
+The project stores deletion activity for up to one week in Upstash.
+
+- **Endpoint**: `/api/logs`
+- **Method**: `GET`
+- **Auth**: `Authorization` header or `password` query value must match `ADMIN_PASSWORD`
+- **Log contents**: timestamp, action type, slot details, OS, and IP address
+
+Example request:
+```bash
+curl -H "Authorization: YOUR_ADMIN_PASSWORD" https://YOUR_APP.vercel.app/api/logs
+```
+
+---
+
+## 📄 Booking Behavior
+
+- Each team may only book one slot.
+- If a team already has a booking, further booking attempts are rejected.
+- When a user selects a slot, the app sends a temporary presence update so other users see a "Someone looking" state.
+- Presence entries are kept for roughly 60 seconds and are cleared automatically when users change selection or leave the page.
+
 ---
 
 ## 📅 Slot Reference
@@ -90,9 +118,9 @@ The system supports **24 total slots** across 6 time blocks and 4 locations.
 
 | Time Block | 2A | Outside Fab Lab | Robotics Lab | Digi Lab |
 | :--- | :---: | :---: | :---: | :---: |
-| **12:15 – 12:25** | ✅ | ✅ | ✅ | ✅ |
-| **12:30 – 12:40** | ✅ | ✅ | ✅ | ✅ |
-| **12:45 – 12:55** | ✅ | ✅ | ✅ | ✅ |
-| **1:40 – 1:50** | ✅ | ✅ | ✅ | ✅ |
-| **1:55 – 2:05** | ✅ | ✅ | ✅ | ✅ |
-| **2:10 – 2:20** | ✅ | ✅ | ✅ | ✅ |
+| **12:15 PM – 12:25 PM** | ✅ | ✅ | ✅ | ✅ |
+| **12:30 PM – 12:40 PM** | ✅ | ✅ | ✅ | ✅ |
+| **12:45 PM – 12:55 PM** | ✅ | ✅ | ✅ | ✅ |
+| **1:40 PM – 1:50 PM** | ✅ | ✅ | ✅ | ✅ |
+| **1:55 PM – 2:05 PM** | ✅ | ✅ | ✅ | ✅ |
+| **2:10 PM – 2:20 PM** | ✅ | ✅ | ✅ | ✅ |
